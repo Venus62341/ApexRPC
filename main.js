@@ -1,6 +1,7 @@
 /* env */
 require('dotenv').config();
-
+const Server = process.env.PLAYING_ON_SERVER;
+const ShowServer = process.env.Show_Server;
 /* Dependencies */
 const DiscordRPC = require('discord-rpc');
 const SteamUser = require('steam-user');
@@ -52,7 +53,7 @@ SteamClient.on('steamGuard', async function(domain, callback) {
 });
 
 SteamClient.on('loggedOn', async function(details) {
-    logger.info(`Logged in with steam vanity url: ${details.vanity_url}, Welcome.`, 'main:steam');
+    logger.info(`Bienvenue ${process.env.STEAM_USERNAME} !`, 'main:steam');
     SteamClient.setPersona(SteamUser.EPersonaState.Online);
 
     if (!['yes', 'y', 'true'].includes(process.env.LAUNCH_APEX_IF_NESSESARY)) {
@@ -128,7 +129,7 @@ SteamClient.on('user', async function(sID, user) {
         state: "",
         startTimestamp,
         largeImageKey: "apex-legends",
-        largeImageText: `ApexRPC v${appVersion}`,
+        largeImageText: `Venus`,
         instance: false
     };
 
@@ -191,11 +192,18 @@ SteamClient.on('user', async function(sID, user) {
         }: ${
             parsedLevel && Translation[parsedLevel] ? Translation[parsedLevel] : "Unknown Map"
         }`;
+        
+        activity.largeImageText = `${
+            parsedLevel && Translation[parsedLevel]
+        }`;
 
         if (!level || !Translation[parsedLevel]) {
             logger.warn(`UNKNOWN LEVEL: ${parsedLevel}`, 'main:user:rpc');
         }
 
+        if (!level || !Translation[gamemode.value]) {
+            logger.warn(`UNKNOWN MODE: ${gamemode.value}`, 'main:user:rpc');
+        }
         if (
             status.value === "#RICHPRESENCE_PLAYING_MULTIPLAYER_SHORT" ||
             status.value === "#RICHPRESENCE_PLAYING_MULTIPLAYER_SHORTPLUS" ||
@@ -223,7 +231,7 @@ SteamClient.on('user', async function(sID, user) {
             activity.largeImageKey = Gallery[parsedLevel]
         }
     } else {
-        activity.details = Translation[status.value] ? Translation[status.value] : "UNKNOWN, CONTACT HOLFZ";
+        activity.details = Translation[status.value] ? Translation[status.value] : "UNKNOWN";
         if (!Translation[status.value]) {
             logger.warn(`UNKNOWN STATE: ${status.value}`, 'main:user:rpc');
             logger.warn(`Report this data to holfz: `);
@@ -232,13 +240,22 @@ SteamClient.on('user', async function(sID, user) {
     }
 
     if (steam_player_group_size) {
-        activity.state = (steam_player_group_size.value > 1) ? "In the party" : "In the party alone";
-        [activity.partySize, activity.partyMax] = [Number(steam_player_group_size.value), 3]; // NOTE: THIS IS HARDCODED
+        if (['yes', 'y', 'true'].includes(ShowServer)) {
+            activity.state = (steam_player_group_size.value > 1) ? `${Server} | In the party` : `${Server} | In the party alone`;
+            [activity.partySize, activity.partyMax] = [Number(steam_player_group_size.value), 3]; // NOTE: THIS IS HARDCODED
+        } else {
+            activity.state = (steam_player_group_size.value > 1) ? `In the party` : `In the party alone`;
+            [activity.partySize, activity.partyMax] = [Number(steam_player_group_size.value), 3];
+        }
     } else {
-        activity.state = `Not joining any party`;
+        if (['yes', 'y', 'true'].includes(ShowServer)) {
+            activity.state = `${Server} | Not joining any party`; // Code to be executed if set true
+        } else {
+            activity.state = `Not joining any party`; // Code to be executed if set false
+        }
     }
-
     await RPC.setActivity(activity);
+    
 });
 
 /* main:RPC */
