@@ -34,7 +34,7 @@ module.exports = Object.freeze({
     "#control_map_name_barometer": "barometer",
     "#control_map_name_caustic": "caustic-treatment",
     "#control_map_name_hammond_labs_night": "hammond-labs-night",
-    "#control_map_name_lava_siphon": "lava-siphon",
+    "#control_map_name_lava_siphon": "https://cdn.imgpile.com/f/Lv8Z5EA_xl.png",
     "#control_map_name_production": "https://cdn.imgpile.com/f/Qpg2EBI_xl.png",
 
     // Free DM
